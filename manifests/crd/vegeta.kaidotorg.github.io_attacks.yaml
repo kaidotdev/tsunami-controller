@@ -1,0 +1,128 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.9
+  creationTimestamp: null
+  name: attacks.tsunami.kaidotorg.github.io
+spec:
+  group: tsunami.kaidotorg.github.io
+  names:
+    kind: Attack
+    listKind: AttackList
+    plural: attacks
+    singular: attack
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              option:
+                properties:
+                  connections:
+                    description: 'Max open idle connections per target host (default
+                      10000) More info: https://github.com/tsenart/tsunami#usage-manual'
+                    minimum: 1
+                    type: integer
+                  duration:
+                    default: 10s
+                    description: 'Duration of the test [0 = forever] More info: https://github.com/tsenart/tsunami#usage-manual'
+                    pattern: ^\d+s$
+                    type: string
+                  format:
+                    description: 'Targets format [http, json] (default "http") More
+                      info: https://github.com/tsenart/tsunami#usage-manual'
+                    enum:
+                    - http
+                    - json
+                    type: string
+                  rate:
+                    description: 'Number of requests per time unit [0 = infinity]
+                      (default 50/1s) More info: https://github.com/tsenart/tsunami#usage-manual'
+                    minimum: 1
+                    type: integer
+                  timeout:
+                    description: 'Requests timeout (default 30s) More info: https://github.com/tsenart/tsunami#usage-manual'
+                    pattern: ^\d+s$
+                    type: string
+                  workers:
+                    description: 'Initial number of workers (default 10) More info:
+                      https://github.com/tsenart/tsunami#usage-manual'
+                    minimum: 1
+                    type: integer
+                type: object
+              output:
+                default: text
+                enum:
+                - text
+                - json
+                type: string
+              parallelism:
+                default: 1
+                description: Parallelism of Attack
+                format: int32
+                minimum: 1
+                type: integer
+              scenario:
+                description: 'Scenario of Attack More info: https://github.com/tsenart/tsunami#http-format'
+                type: string
+              template:
+                properties:
+                  metadata:
+                    description: 'Standard object''s metadata. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata'
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  spec:
+                    properties:
+                      hostAliases:
+                        description: HostAliases is an optional list of hosts and
+                          IPs that will be injected into the pod's hosts file if specified.
+                          This is only valid for non-hostNetwork pods.
+                        items:
+                          description: HostAlias holds the mapping between IP and
+                            hostnames that will be injected as an entry in the pod's
+                            hosts file.
+                          properties:
+                            hostnames:
+                              description: Hostnames for the above IP address.
+                              items:
+                                type: string
+                              type: array
+                            ip:
+                              description: IP address of the host file entry.
+                              type: string
+                          type: object
+                        type: array
+                    type: object
+                type: object
+            required:
+            - scenario
+            type: object
+          status:
+            type: object
+        type: object
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

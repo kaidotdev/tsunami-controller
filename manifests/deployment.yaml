@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tsunami-controller
+spec:
+  replicas: 4
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: tsunami-controller
+  template:
+    metadata:
+      labels:
+        app: tsunami-controller
+    spec:
+      serviceAccountName: tsunami-controller
+      securityContext:
+        sysctls:
+          # https://github.com/kubernetes/kubernetes/pull/54896
+          #- name: net.core.somaxconn
+          #  value: "65535"
+          - name: net.ipv4.ip_local_port_range
+            value: "10000 65535"
+          - name: net.ipv4.tcp_syncookies
+            value: "1"
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: tsunami-controller
+      containers:
+        - name: controller
+          image: docker.pkg.github.com/kaidotdev/tsunami-controller/tsunami-controller:v1.0.0
+          imagePullPolicy: Always
+          args:
+            - --metrics-addr=0.0.0.0:8080
+            - --enable-leader-election
+            - --tsunami-image=docker.pkg.github.com/tsunami-controller/workspace/tsunami:v1.0.0
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sleep", "3"]

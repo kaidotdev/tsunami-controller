@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tsunami-controller
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0%
+      maxUnavailable: 1
+  template:
+    spec:
+      containers:
+        - name: controller
+          image: tsunami-controller
+          imagePullPolicy: Never
