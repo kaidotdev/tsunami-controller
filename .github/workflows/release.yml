@@ -1,0 +1,42 @@
+name: Release
+on:
+  create:
+    tags:
+      - v*.*.*
+jobs:
+  publish:
+    name: Publish
+    runs-on: ubuntu-18.04
+    env:
+      OWNER: kaidotdev
+      REPOSITORY_NAME: tsunami-controller
+      IMAGE_NAME: tsunami-controller
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Cache docker build
+        id: cache
+        uses: actions/cache@v1
+        with:
+          path: /home/runner/.cache/docker-build
+          key: ${{ runner.os }}-docker-${{ hashFiles(format('{0}{1}', github.workspace, '/Dockerfile')) }}-${{ hashFiles(format('{0}{1}', github.workspace, '/go.sum')) }}-${{ hashFiles(format('{0}{1}', github.workspace, '/**/*.go')) }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: crazy-max/ghaction-docker-buildx@v1
+        with:
+          version: v0.3.1
+      - name: Publish
+        run: |
+          IMAGE_PATH=ghcr.io/${OWNER}/${IMAGE_NAME}
+          TAG=${GITHUB_REF##*/}
+          opt=''
+          if [ -d /home/runner/.cache/docker-build ]; then
+            opt='--cache-from type=local,src=/home/runner/.cache/docker-build'
+          else
+            opt='--cache-from type=registry,ref=$IMAGE_PATH:master'
+          fi
+          docker login ghcr.io -u $OWNER -p ${{ secrets.GITHUB_TOKEN }}
+          docker buildx build --output type=docker,name=$IMAGE_PATH:$TAG,push=false ${opt} --cache-to type=local,mode=max,dest=/home/runner/.cache/docker-build .
+          docker push $IMAGE_PATH:$TAG
