@@ -36,7 +36,7 @@ spec:
               app: tsunami-controller
       containers:
         - name: controller
-          image: docker.pkg.github.com/kaidotdev/tsunami-controller/tsunami-controller:v1.0.0
+          image: ghcr.io/kaidotdev/tsunami-controller:v0.1.0
           imagePullPolicy: Always
           args:
             - --metrics-addr=0.0.0.0:8080
